@@ -75,6 +75,8 @@ Derrotar um boss concede bônus de Plant Food, Seeds ao fim da run e +1 reroll. 
 
 `dist/js/ascensions.js` registra caminhos ligados a uma Evolution específica. Uma planta só fica elegível depois de possuir essa Evolution, alcançar Plant Food LV5 e cumprir seu requisito de uso na run. A primeira versão oferece uma Ascension comportamental para cada uma das 21 Evolutions e mantém o registry preparado para múltiplos caminhos. Relics, Ascensions e seus contadores são estado transitório da run; o save permanece v3.
 
+O Almanac mostra Evolution exigida, nível de Plant Food e progresso numérico de cada Ascension. Knockout executa seu knockback autonomamente a cada quinto golpe e Heavyweight adiciona stun somente nesse impacto. Pickups de Solar Bank com Compound Interest recebem +12s de lifetime próprio, permitindo rendimento após o cap sem exigir Sun Basket; o bônus continua limitado a +10 Sun.
+
 ## Evolutions
 
 `dist/js/evolutions.js` define três caminhos por espécie. A escolha usa uma tela especial e é mutuamente exclusiva por planta na run. Os efeitos implementados incluem piercing/split/sniper, Gatling/focused fire/crossfire, Solar Bank/Golden/Healing Bloom, knockback/berserker/sweep, fragmentation/slow/siege, cluster/remote/napalm e taunt/thorns/regeneration.
