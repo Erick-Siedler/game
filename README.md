@@ -67,7 +67,13 @@ The Crusher tem silhueta e barra próprias, escala por ciclo de boss e usa uma m
 
 The Collector puxa fisicamente pickups reais de Sun e pode perder a disputa para o cursor/Sun Magnet; ao roubar, ganha bônus limitados e devolve 60% do valor na morte. Seus telegraphs e os reforços do Foreman usam tempo real em qualquer velocidade. O Sporekeeper prioriza e cura no máximo quatro aliados por pulso.
 
-Derrotar um boss concede bônus de Plant Food, Seeds ao fim da run e +1 reroll. Enquanto houver espécies elegíveis, segue uma Evolution; depois que toda a build estiver evoluída, aparece um draft especial de Boss Reward priorizando upgrades Rare/Epic. Waves 30/60/90 liberam um novo Garden após qualquer uma dessas recompensas e oferecem uma preparação manual de 25s; os demais bosses mantêm a micro-expansão por setor.
+Derrotar um boss concede bônus de Plant Food, Seeds ao fim da run e +1 reroll. Enquanto houver espécies elegíveis, segue uma Evolution. No late game, o orquestrador alterna Boss Relics e Ascensions elegíveis; se nenhum dos dois estiver disponível, usa o draft Rare/Epic e, por fim, uma recompensa segura de Sun, Plant Food e reroll. Nenhum desses caminhos pode produzir um modal vazio. Waves 30/60/90 liberam um novo Garden depois da recompensa e oferecem uma preparação manual de 25s; os demais bosses mantêm a micro-expansão por setor.
+
+## Boss Relics e Ascensions
+
+`dist/js/bossRelics.js` registra Relics únicas da run, sorteia drafts sem repetir itens no limite e expõe modifiers consultados dinamicamente. Há cinco slots; ao lotar, a UI permite substituir uma Relic ou escolher a alternativa de Boss Reward. Solar Core, Emergency Irrigation, Shared Roots, Overclocked Seeds, Golden Compost, Fortress Network, Hunter's Mark, Sun Reservoir, Cross-Garden Roots, Last Bastion e Supply Lines interagem com Sun global, cooldowns, múltiplas bases, perda de Garden e combate sem criar outro sistema de eventos.
+
+`dist/js/ascensions.js` registra caminhos ligados a uma Evolution específica. Uma planta só fica elegível depois de possuir essa Evolution, alcançar Plant Food LV5 e cumprir seu requisito de uso na run. A primeira versão oferece uma Ascension comportamental para cada uma das 21 Evolutions e mantém o registry preparado para múltiplos caminhos. Relics, Ascensions e seus contadores são estado transitório da run; o save permanece v3.
 
 ## Evolutions
 
@@ -87,7 +93,7 @@ Há infraestrutura de vizinhança (`adjacentPlants`, `nearbyPlantTypes`, `distan
 - Garden Aura: Sunflower cura lentamente plantas adjacentes.
 - Crossfire: Shooters adjacentes recebem +10% de velocidade.
 
-O resumo da run separa Evolutions, Rare/Epic, sinergias, comuns e níveis de Plant Food. Drafts de upgrade e Evolution consideram plantas vivas em todos os Gardens ativos. O Progressive Cost também usa a quantidade viva global da espécie, enquanto adjacency, Solar Network, terrain e demais sinergias espaciais continuam locais. Strong Foundation afeta os fronts atuais e seus stacks são herdados por Gardens desbloqueados depois.
+O resumo da run separa Evolutions, Ascensions, Boss Relics, Rare/Epic, sinergias, comuns e níveis de Plant Food. Drafts de upgrade e Evolution consideram plantas vivas em todos os Gardens ativos. O Progressive Cost também usa a quantidade viva global da espécie, enquanto adjacency, Solar Network, terrain e demais sinergias espaciais continuam locais. Strong Foundation afeta os fronts atuais e seus stacks são herdados por Gardens desbloqueados depois.
 
 ## Economia, cooldowns e Garden Tools
 
@@ -112,9 +118,9 @@ As estatísticas incluem bosses derrotados, maior boss wave, Suns coletados pelo
 
 ## Eventos e debug
 
-O `EventBus` enxuto desacopla hooks para `wave:start`, `wave:end`, `boss:spawn`, `boss:telegraph`, `boss:defeated`, `bossReward:selected`, `plant:placed`, `plant:removed`, `sun:collected`, `upgrade:selected`, `evolution:selected`, `sector:unlocked`, `garden:unlocked`, `garden:conditionAssigned`, `garden:switched`, `garden:alert`, `garden:underPressure`, `garden:lost` e `run:end`.
+O `EventBus` enxuto desacopla hooks para `wave:start`, `wave:end`, `boss:spawn`, `boss:telegraph`, `boss:defeated`, `bossReward:selected`, `bossReward:fallback`, `relic:selected`, `relic:replaced`, `relic:triggered`, `ascension:selected`, `plant:placed`, `plant:removed`, `sun:collected`, `upgrade:selected`, `evolution:selected`, `sector:unlocked`, `garden:unlocked`, `garden:conditionAssigned`, `garden:switched`, `garden:alert`, `garden:underPressure`, `garden:lost` e `run:end`.
 
-Com `BALANCE.debug = true` ou `?debug=1`, o painel oferece Spawn/Jump Boss, Wave 10/20/30/60/80/90, esgotar Evolutions, unlock/switch/loss de Greenhouse, dano da base atual, troca de Condition, reroll, setor, Evolution, Sun, Plant Food e reset da wave para QA rápido.
+Com `BALANCE.debug = true` ou `?debug=1`, o painel oferece Spawn/Jump Boss, Wave 10/20/30/60/80/90, esgotar Evolutions, promover plantas a LV5, completar requisitos, abrir drafts de Ascension/Relic, preencher slots de Relic, unlock/switch/loss de Greenhouse, dano da base atual, troca de Condition, reroll, setor, Sun, Plant Food e reset da wave para QA rápido.
 
 ## Arquivos principais
 
@@ -122,6 +128,8 @@ Com `BALANCE.debug = true` ou `?debug=1`, o painel oferece Spawn/Jump Boss, Wave
 - `dist/js/map.js`: mapa, setores, terreno e coordenadas.
 - `dist/js/waves.js`: planos, orçamento, grupos e bosses.
 - `dist/js/evolutions.js`: caminhos comportamentais.
+- `dist/js/ascensions.js`: especializações de Evolutions e requisitos de uso.
+- `dist/js/bossRelics.js`: Relics globais, raridades, modifiers e draft.
 - `dist/js/roguelikeUpgrades.js`: pool, tags e draft.
 - `dist/js/game.js`: simulação, combate, economia e estados da run.
 - `dist/js/render.js`: Canvas, setores, entidades e telegraphs.
