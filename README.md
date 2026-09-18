@@ -87,7 +87,7 @@ O save v3 adiciona Garden Tools:
 
 - Gardening Gloves amplia a hitbox e depois coleta vizinhos próximos.
 - Sun Basket acrescenta 3s de vida por nível.
-- Sun Magnet auto-coleta o Sun mais antigo em intervalos de 6s, 4s ou 2,5s, com animação até o HUD.
+- Sun Magnet cria um campo local no cursor: Suns próximos reagem, aceleram até o mouse e então usam a animação de coleta até o HUD.
 - Seed Satchel concede rerolls no início da run.
 
 ## Mastery e save
@@ -96,7 +96,7 @@ Os bônus percentuais modestos permanecem e agora cada espécie tem milestones 5
 
 `dist/js/save.js` usa schema v3 e mantém migrações v1→v2→v3. O `localStorage` guarda metaprogressão, Garden Tools, masteries, estatísticas, bosses e favoritos; dados específicos da run não persistem. Export/import TXT passa pelo mesmo validador.
 
-As estatísticas incluem bosses derrotados, maior boss wave, Suns auto-coletados, setores, Evolutions e favoritos. Game Over mostra bosses, setores e acesso ao build final.
+As estatísticas incluem bosses derrotados, maior boss wave, Suns coletados pelo Magnet (na chave compatível `sunsAutoCollected`), setores, Evolutions e favoritos. Game Over mostra bosses, setores e acesso ao build final.
 
 ## Eventos e debug
 

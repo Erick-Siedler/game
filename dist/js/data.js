@@ -5,6 +5,15 @@ export const BALANCE={
  waves:{baseBudget:5,budgetGrowth:2,chapterGrowth:3.5,hpGrowth:1.065,damageGrowth:1.035,speedGrowth:.005,speedCap:1.24,insideDelay:.7,groupDelay:2.5},
  bossEvery:10,debug:false
 };
+export const SUN_MAGNET=Object.freeze({
+ levels:Object.freeze([
+  Object.freeze({radius:0,strength:0,collectionRadius:0}),
+  Object.freeze({radius:1.4,strength:4.5,collectionRadius:.28}),
+  Object.freeze({radius:2.25,strength:6,collectionRadius:.32}),
+  Object.freeze({radius:3.25,strength:8,collectionRadius:.36})
+ ]),
+ response:7,curve:.16,glovesCollectionBonus:.04
+});
 export const CLASSES={all:'Todas',shooter:'Atiradoras',support:'Economia',melee:'Corpo a corpo',artillery:'Artilharia',trap:'Armadilhas',defense:'Defesa'};
 export const PLANTS=[
  {id:'peashooter',name:'Peashooter',class:'shooter',color:'#5bae48',baseCost:100,cooldown:2,hp:150,damage:26,attackInterval:1.05,range:4.2,projectileSpeed:9,projectileCount:1,abilityName:'Single Shot',description:'Dispara no zumbi mais próximo do jardim.',role:'Defesa versátil de médio alcance.'},
