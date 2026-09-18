@@ -1,0 +1,10 @@
+export const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+export const easeOut=t=>1-Math.pow(1-clamp(t),3);
+export const easeInOut=t=>{t=clamp(t);return t*t*(3-2*t)};
+export const pulse=(t,speed=1)=>.5+.5*Math.sin(t*speed);
+export const pingPong=t=>1-Math.abs((t%2+2)%2-1);
+export const spring=t=>1-Math.exp(-8*clamp(t))*Math.cos(12*clamp(t));
+export const squashStretch=(amount)=>[1+amount,1-amount*.65];
+export const seed=n=>{const v=Math.sin(n*127.1+311.7)*43758.5453;return v-Math.floor(v)};
+export const blink=(t,id=0)=>{const p=(t+seed(id)*6)%(4.1+seed(id+3)*2);return p<.14?.12:1};
+export const kick=(time,start,duration=.4)=>Math.sin(clamp((time-start)/duration)*Math.PI)*Math.exp(-clamp((time-start)/duration)*2);

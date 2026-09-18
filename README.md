@@ -1,22 +1,117 @@
 # Garden / Last Stand
 
-Protótipo de survival tower defense top-down. HTML, CSS e JavaScript modular, sem dependências externas ou assets oficiais.
+## Arte procedural e animação
 
-## Executar
-Sirva `dist/` com um servidor HTTP local, por exemplo `python -m http.server 8000 --directory dist`, e abra localhost:8000. Módulos ES precisam de HTTP, não file://.
+A apresentação Canvas 2D fica em `dist/js/art/`: `palette.js` centraliza cores; `shapes.js` fornece formas, folhas, rostos e sombras; `animation.js` fornece easing, spring, pulse, blink e squash/stretch. `plants.js`, `zombies.js`, `bosses.js`, `projectiles.js`, `effects.js` e `environment.js` desenham as entidades e o cenário. `portraits.js` reutiliza a identidade visual em portraits próprios, cacheados para packets, Almanac, Evolutions e boss HUD.
 
-## Controles
-1–7 selecionam uma espécie. Clique num tile interior livre para plantar; clique numa planta para inspecionar. Espaço pausa; Esc cancela seleção; botão 1× alterna 1×/2×/3×. Inicie cada wave manualmente. Zumbis avançam ao jardim e atacam plantas próximas que bloqueiam seu caminho. A borda não aceita plantas.
+`visualState.js` observa UIDs, HP, contadores de ataques, produção e projéteis sem escrever na simulação. Guarda snapshots de morte independentes, relógio cosmético, pulsos de animação e links de impacto; reutiliza o EventBus para nascimento, coleta, Evolution e expansão. Partículas têm limite de 280; snapshots de morte, 60; voos de coleta, 18. Terreno e portraits usam cache. Tremor afeta somente o mundo e respeita preferência por movimento reduzido. A ordenação por Y mantém a perspectiva 3/4.
 
-## Progressão
-Escolha um bônus ao terminar cada wave e receba Plant Food. Evoluir uma espécie afeta plantas existentes e futuras apenas na run atual. Ao perder, receba Seeds para três melhorias permanentes. O save no localStorage guarda metaprogressão, não a run ativa. Exporte/import TXT pelo menu; importe apenas saves versão 1. Reset é confirmado e só é recuperável com export prévio.
+Para adicionar arte, estenda o dispatch de `drawPlant` ou `drawZombie`/`drawBoss`; IDs desconhecidos usam fallback. Projéteis são desenhados em `drawProjectile` a partir dos campos já existentes, com metadados cosméticos opcionais. Cues de Evolution usam o ID de `selectedEvolutions` e também aparecem em `plantImage(plantId, evolutionId)`. Novos efeitos de gameplay existentes podem ser mapeados em `effectFamily` sem alterar dano ou timing.
 
-O custo de cada espécie cresce 20% por cópia viva no campo: `round(baseCost × 1.20^quantidade)`. A contagem é independente por espécie e cai assim que uma planta morre ou uma Potato Mine explode. A função central `getPlantCost(plantId)` aplica o scaling e depois descontos, limitados a 25%. Cards, tooltips, Almanac e placement usam essa mesma função.
+Esta etapa de polimento foi implementada sem executar testes, QA, navegador, playtest ou benchmarks, conforme solicitado. A validação visual e funcional fica para uma etapa posterior.
 
-## Arquitetura e balanceamento
-`dist/js/data.js`: espécies, inimigos, bônus e parâmetros. `game.js`: simulação de passo fixo e combate. `render.js`: Canvas. `save.js`: validação e persistência. `main.js`: interface e estados.
+Tower defense/RTS roguelike top-down em HTML, CSS e JavaScript modular, sem dependências de runtime nem assets oficiais. A run é dividida em capítulos de 10 waves: o jogador desenvolve uma build, enfrenta um boss, escolhe uma Evolution e expande o jardim, abrindo também uma nova rota de invasão.
 
-Em data.js, altere `BALANCE.plantCostScaling.defaultMultiplier` para balancear o crescimento global. Uma planta pode futuramente sobrescrever a curva com `costGrowth`. Altere `BALANCE.debug` para true para expor gardenDebug no console, com sun(), food(), kill(), next(), damage() e seeds(). Desativado por padrão. Execute `npm test` para testes de lógica.
+## Executar e testar
 
-## Limitações do protótipo
-Gráficos geométricos; artilharia simplificada, sem arco visual. IA direta com ataque a obstáculos, sem A*. Sem áudio. Balanceamento inicial ainda precisa de playtest humano. WebMCP read_garden_run é opcional; indisponibilidade não afeta gameplay.
+Sirva `dist/` por HTTP (módulos ES não funcionam via `file://`):
+
+```bash
+python -m http.server 8000 --directory dist
+```
+
+Abra `http://localhost:8000`. Execute `npm test` para os testes de regressão e sistemas; `npm run test:balance` executa o jogador simulado de balanceamento. Para expor os controles de QA sem alterar o build, use `?debug=1`.
+
+## Controles e UX
+
+- `1–7`: seleciona uma espécie; clique num tile ativo e livre para plantar.
+- `X` ou botão `PÁ`: remove a planta. Na preparação devolve 25% do custo efetivamente pago; durante a wave não há refund.
+- Clique num Sun para coletar. `Espaço` pausa, `Esc` cancela a seleção e o botão `1×` alterna 1×/2×/3×.
+- Cada seed packet mostra custo progressivo, hotkey, quantidade, Plant Food em pips e overlay de cooldown próprio.
+- A intermission mostra a composição, threat budget, grupos e entradas exatas do `WavePlan`; a wave 9 também avisa que o boss vem em seguida.
+
+## Mapa, setores e terreno
+
+`dist/js/map.js` é a fonte única para tamanho, tile, base, setores, terreno, spawn edges e conversões de coordenadas. Os helpers `worldToScreen`, `screenToWorld`, `gridToScreen`, `screenToGrid`, `isTileInsideActiveMap`, `isTilePlantable` e `getActiveSpawnEdges` removem a matemática duplicada da simulação e do input.
+
+O Central Garden começa ativo. Após cada boss, o jogador pode liberar North, East, South ou West. O espaço adicional sempre traz uma contrapartida: habilita ou reforça a rota correspondente. Os terrenos iniciais são:
+
+- Sunny Patch: Sunflowers produzem 10% mais rápido.
+- High Ground: artilharia recebe +1 de alcance.
+- Fortified Soil: plantas de defesa recebem +15% HP.
+- Fertile Soil: a primeira planta no setor custa 15% menos.
+
+Setores bloqueados usam uma leitura visual própria e não aceitam placement. A IA continua usando movimento direto e obstáculos locais; não há A* recalculado por frame.
+
+## WavePlan, threat budget e grupos
+
+`dist/js/waves.js` gera toda a wave antes do início. Um plano contém `waveNumber`, `type`, composição, `spawnEdges`, `spawnGroups`, `threatBudget` e `spentThreat`. Normal, Conehead e Buckethead custam respectivamente 1, 2,5 e 5 pontos de ameaça. A curva aumenta por wave e ganha um degrau moderado por capítulo.
+
+Os inimigos são distribuídos em grupos. Cada grupo possui atraso curto entre membros e uma pausa maior antes do próximo, evitando a fila contínua das waves altas. A UI consulta o mesmo objeto consumido pelo spawn — não há preview inventado.
+
+## Boss waves
+
+Toda wave múltipla de 10 é `type: "boss"`. `BOSSES` é um registro de definições com stats, habilidade, escala e configuração; Collector e Foreman ficam estruturalmente preparados, enquanto The Crusher está totalmente funcional.
+
+The Crusher tem silhueta e barra próprias, escala por ciclo de boss e usa uma máquina de estados para `moving → telegraph → charging`. O telegraph dura 1,8s e desenha a trajetória antes da investida. A charge acerta a primeira planta no caminho, valorizando frontlines e Wall-Nuts sem torná-los obrigatórios. Eventos `boss:spawn`, `boss:telegraph` e `boss:defeated` permitem áudio futuro.
+
+Derrotar um boss concede bônus de Plant Food, Seeds ao fim da run, +1 reroll, uma Evolution e uma expansão.
+
+## Evolutions
+
+`dist/js/evolutions.js` define três caminhos por espécie. A escolha usa uma tela especial e é mutuamente exclusiva por planta na run. Os efeitos implementados incluem piercing/split/sniper, Gatling/focused fire/crossfire, Solar Bank/Golden/Healing Bloom, knockback/berserker/sweep, fragmentation/slow/siege, cluster/remote/napalm e taunt/thorns/regeneration.
+
+Evolutions alteram comportamento: projéteis perfuram ou dividem, Suns podem valorizar no chão, impactos deixam zonas, minas criam cargas e formações passam a importar. A seção `Possible Evolutions` do Almanac explica os caminhos.
+
+## Upgrades, reroll e sinergias
+
+O draft prioriza duas opções ligadas às espécies/classes presentes e reserva um wildcard para economia, base ou pivô. Tags como `projectile`, `area`, `economy` e `adjacency` criam um bias suave de identidade de build. Raros e épicos priorizam chance, combos ou comportamento; o sistema ainda mantém comuns numéricos como sustentação.
+
+Bosses concedem reroll. O botão `REROLL (n)` substitui as três opções respeitando caps, unicidade e relevância.
+
+Há infraestrutura de vizinhança (`adjacentPlants`, `nearbyPlantTypes`, `distance`) e três sinergias completas:
+
+- Bodyguard: Bonk Choy ao lado de Wall-Nut recebe +20% de velocidade.
+- Garden Aura: Sunflower cura lentamente plantas adjacentes.
+- Crossfire: Shooters adjacentes recebem +10% de velocidade.
+
+O resumo da run separa Evolutions, Rare/Epic, sinergias, comuns e níveis de Plant Food.
+
+## Economia, cooldowns e Garden Tools
+
+O custo por espécie continua sendo `round(baseCost × 1.20^quantidade)`, com descontos limitados a 25%. Todas as superfícies usam `getPlantCost`. Remover ou perder uma planta atualiza a contagem imediatamente.
+
+Cada espécie tem cooldown de seed packet (2–7s), usa tempo de simulação e congela na pausa. A vida dos Suns usa tempo real compensado pela velocidade, dando aproximadamente o mesmo intervalo de clique em 1×, 2× e 3×.
+
+O save v3 adiciona Garden Tools:
+
+- Gardening Gloves amplia a hitbox e depois coleta vizinhos próximos.
+- Sun Basket acrescenta 3s de vida por nível.
+- Sun Magnet auto-coleta o Sun mais antigo em intervalos de 6s, 4s ou 2,5s, com animação até o HUD.
+- Seed Satchel concede rerolls no início da run.
+
+## Mastery e save
+
+Os bônus percentuais modestos permanecem e agora cada espécie tem milestones 5/10: desconto inicial, chance extra, maior duração/valor de Sun, heavy punch antecipado, primeiro splash/explosão reforçado e recuperação/HP da primeira Wall-Nut. O Almanac mostra todos os marcos.
+
+`dist/js/save.js` usa schema v3 e mantém migrações v1→v2→v3. O `localStorage` guarda metaprogressão, Garden Tools, masteries, estatísticas, bosses e favoritos; dados específicos da run não persistem. Export/import TXT passa pelo mesmo validador.
+
+As estatísticas incluem bosses derrotados, maior boss wave, Suns auto-coletados, setores, Evolutions e favoritos. Game Over mostra bosses, setores e acesso ao build final.
+
+## Eventos e debug
+
+O `EventBus` enxuto desacopla hooks para `wave:start`, `wave:end`, `boss:spawn`, `boss:telegraph`, `boss:defeated`, `plant:placed`, `plant:removed`, `sun:collected`, `upgrade:selected`, `evolution:selected`, `sector:unlocked` e `run:end`.
+
+Com `BALANCE.debug = true` ou `?debug=1`, o painel oferece Spawn/Jump Boss, Wave 10/20, reroll, setor, Evolution, Sun, Plant Food e reset da wave para QA rápido.
+
+## Arquivos principais
+
+- `dist/js/data.js`: plantas, inimigos, caps e balanceamento.
+- `dist/js/map.js`: mapa, setores, terreno e coordenadas.
+- `dist/js/waves.js`: planos, orçamento, grupos e bosses.
+- `dist/js/evolutions.js`: caminhos comportamentais.
+- `dist/js/roguelikeUpgrades.js`: pool, tags e draft.
+- `dist/js/game.js`: simulação, combate, economia e estados da run.
+- `dist/js/render.js`: Canvas, setores, entidades e telegraphs.
+- `dist/js/main.js`: UI, input, modais, Almanac e metaprogressão.
+- `tests/smoke.js` e `tests/systems.js`: regressão e sistemas integrados.

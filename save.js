@@ -1,9 +1,0 @@
-import {PLANTS,METRICS} from './data.js';
-const KEY='garden-last-stand-v1'; // Preserve the original key to discover existing saves.
-export const fresh=()=>({version:2,seeds:0,highestWave:0,totalRuns:0,kills:0,time:0,economy:0,fortress:0,plantMastery:Object.fromEntries(PLANTS.map(p=>[p.id,0])),settings:{autoStart:true},statistics:Object.fromEntries(METRICS.map(k=>[k,0]))});
-function integer(v,max=1e12){if(!Number.isSafeInteger(v)||v<0||v>max)throw Error('Valor inválido no save.');return v}
-export function migrateSaveV1ToV2(old){if(old?.version!==1)throw Error('Save v1 esperado.');const n=fresh();for(const k of ['seeds','highestWave','totalRuns','kills','time','economy','fortress'])n[k]=integer(old[k],['economy','fortress'].includes(k)?10:1e12);const lv=integer(old.mastery,10);for(const p of PLANTS)if(p.damage)n.plantMastery[p.id]=lv;return n}
-export function validate(input){let s=input?.version===1?migrateSaveV1ToV2(input):input;if(!s||s.version!==2)throw Error('Versão de save inválida.');const n=fresh();for(const k of ['seeds','highestWave','totalRuns','kills','time','economy','fortress'])n[k]=integer(s[k],['economy','fortress'].includes(k)?10:1e12);for(const p of PLANTS)n.plantMastery[p.id]=integer(s.plantMastery?.[p.id],10);if(typeof s.settings?.autoStart!=='boolean')throw Error('Configuração inválida.');n.settings.autoStart=s.settings.autoStart;for(const k of METRICS)n.statistics[k]=integer(s.statistics?.[k]??0);return n}
-export function read(){try{const raw=localStorage.getItem(KEY);return raw?validate(JSON.parse(raw)):fresh()}catch{return fresh()}}
-export function write(s){try{localStorage.setItem(KEY,JSON.stringify(validate(s)));return true}catch{return false}}
-export function download(s){const url=URL.createObjectURL(new Blob([JSON.stringify(validate(s),null,2)],{type:'text/plain'}));const a=document.createElement('a');a.href=url;a.download='pvz_rts_save.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}

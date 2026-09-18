@@ -1,0 +1,6 @@
+import {P} from './palette.js';
+import {oval,leaf,line,star,shadow} from './shapes.js';
+import {cabbage} from './plants.js';
+import {clamp} from './animation.js';
+export function drawProjectile(c,s,T,time,cosmetic={}){const sniper=s.sniper||cosmetic.evolution==='sniperPea',target=s.target||s,dx=target.x-s.x,dy=target.y-s.y,angle=Math.atan2(dy,dx),distance=Math.hypot(target.x-(s.startX??s.x),target.y-(s.startY??s.y)),travel=Math.hypot(s.x-(s.startX??s.x),s.y-(s.startY??s.y)),arc=s.splash?Math.sin(clamp(travel/Math.max(.1,distance))*Math.PI)*(s.siege?37:25):0,x=s.x*T,y=s.y*T;shadow(c,x,y+4,s.splash?(s.siege?10:6):3,arc);c.save();c.translate(x,y-arc);c.rotate(s.splash?time*5+travel:angle);if(s.splash){if(s.siege){c.globalAlpha=.3;line(c,[[-22,3],[-7,0]],P.cream,9);c.globalAlpha=1}cabbage(c,0,0,s.siege?14:8,time);if(s.fragment){leaf(c,-7,2,4,-1);leaf(c,5,4,4,1)}c.restore();return}const long=s.pierce?22:sniper?26:10;c.globalAlpha=.32;line(c,[[-long,0],[-3,0]],s.critical?P.sun:P.light,sniper?2:3);c.globalAlpha=1;oval(c,0,0,sniper?7:5,sniper?2.5:4,s.critical?P.sun:P.green);oval(c,-1,-1.4,2.2,1.2,P.cream,false);leaf(c,-4,0,3,-1.3,P.dark);if(s.pierce)shapeTip(c);if(s.critical)star(c,1,-6,3.5,P.critical,time*4);c.restore()}
+function shapeTip(c){line(c,[[4,-2],[8,0],[4,2]],P.light,1.5)}
