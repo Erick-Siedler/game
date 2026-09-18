@@ -25,9 +25,20 @@ export const PLANTS=[
  {id:'potatoMine',name:'Potato Mine',class:'trap',color:'#b89062',baseCost:50,cooldown:7,hp:80,damage:420,range:1,armTime:5,splashRadius:1.7,abilityName:'Buried Explosive',description:'Arma em 5s e explode quando um zumbi se aproxima.',role:'Prepare antecipadamente contra ameaças pesadas.'}
 ];
 export const ZOMBIES=[
- {id:'normal',name:'Normal',hp:120,speed:.56,damage:16,attackInterval:1,color:'#9cad79',threatCost:1},
- {id:'conehead',name:'Conehead',hp:300,speed:.5,damage:22,attackInterval:1,color:'#9ba66d',threatCost:2.5},
- {id:'buckethead',name:'Buckethead',hp:650,speed:.43,damage:28,attackInterval:1,color:'#819b81',threatCost:5}
+ {id:'normal',name:'Normal',role:'horde',roleLabel:'HORDE',hp:120,speed:.56,damage:16,attackInterval:1,color:'#9cad79',threatCost:1,unlockWave:1,weight:7,ability:'Sem habilidade especial.',description:'A espinha dorsal da horda.'},
+ {id:'conehead',name:'Conehead',role:'guard',roleLabel:'TOUGH',hp:300,speed:.5,damage:22,attackInterval:1,color:'#9ba66d',threatCost:2.5,unlockWave:3,weight:4.5,ability:'Proteção leve.',description:'Resiste mais que um invasor comum.'},
+ {id:'buckethead',name:'Buckethead',role:'guard',roleLabel:'ARMORED',hp:650,speed:.43,damage:28,attackInterval:1,color:'#819b81',threatCost:5,unlockWave:5,weight:2.5,ability:'Proteção pesada.',description:'Avança devagar atrás de um balde resistente.'},
+ {id:'sprinter',name:'Sprinter',role:'fast',roleLabel:'FAST',hp:155,speed:1.08,damage:18,attackInterval:.72,color:'#b5bd72',threatCost:1.75,unlockWave:4,weight:3.4,groupCap:6,ability:'Corrida veloz.',description:'Chega ao jardim antes do restante da horda.'},
+ {id:'brute',name:'Brute',role:'heavy',roleLabel:'HEAVY',hp:1150,speed:.29,damage:58,attackInterval:1.55,color:'#71836b',threatCost:8,unlockWave:8,weight:1.15,groupCap:1,armorFlat:10,minDamageRatio:.12,ability:'Armadura improvisada.',description:'Reduz hits pequenos, mas ataques pesados atravessam sua defesa.'},
+ {id:'sporekeeper',name:'Sporekeeper',role:'support',roleLabel:'SUPPORT',hp:420,speed:.42,damage:14,attackInterval:1.25,color:'#78976b',threatCost:4.5,unlockWave:11,weight:1.25,groupCap:1,healRadius:2.6,healInterval:4.5,healPercent:.06,healCap:90,ability:'Pulso de esporos.',description:'Cura aliados próximos e deve ser eliminado cedo.'},
+ {id:'volatile',name:'Volatile',role:'volatile',roleLabel:'EXPLODES',hp:260,speed:.53,damage:19,attackInterval:1.05,color:'#91a84f',threatCost:4,unlockWave:12,weight:1.5,groupCap:2,deathRadius:1.3,deathDamage:120,ability:'Explosão tóxica.',description:'Ao morrer, fere plantas agrupadas ao redor.'}
 ];
+export const ELITE_MODIFIERS={
+ hasty:{id:'hasty',name:'Hasty',label:'HASTY',threatMultiplier:1.4,description:'+35% de movimento e trilhas de vento.'},
+ armored:{id:'armored',name:'Armored',label:'ARMORED',threatMultiplier:1.5,description:'Placas reduzem cada hit sem criar imunidade.'},
+ regenerating:{id:'regenerating',name:'Regenerating',label:'REGEN',threatMultiplier:1.45,description:'Recupera 1,5% HP/s após 3s sem receber dano.'},
+ frenzied:{id:'frenzied',name:'Frenzied',label:'FRENZIED',threatMultiplier:1.4,description:'+30% de velocidade de ataque.'},
+ toxic:{id:'toxic',name:'Toxic',label:'TOXIC',threatMultiplier:1.5,description:'Deixa uma pequena zona tóxica ao morrer.'}
+};
 export const METRICS=['sunSpawned','sunCollected','sunMissed','sunflowerSun','naturalSun','plantsPlaced','plantsLost','damageDealt','bossesDefeated','highestBossWave','sunsAutoCollected','sectorsExpanded','evolutionsChosen'];
 export {UPGRADES} from './roguelikeUpgrades.js';

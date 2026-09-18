@@ -45,15 +45,17 @@ Setores bloqueados usam uma leitura visual própria e não aceitam placement. A 
 
 ## WavePlan, threat budget e grupos
 
-`dist/js/waves.js` gera toda a wave antes do início. Um plano contém `waveNumber`, `type`, composição, `spawnEdges`, `spawnGroups`, `threatBudget` e `spentThreat`. Normal, Conehead e Buckethead custam respectivamente 1, 2,5 e 5 pontos de ameaça. A curva aumenta por wave e ganha um degrau moderado por capítulo.
+`dist/js/waves.js` gera toda a wave antes do início. Um plano contém `waveNumber`, `type`, tema opcional, composição, Elites, `spawnEdges`, `spawnGroups`, `threatBudget` e `spentThreat`. Normal, Sprinter, Conehead, Volatile, Sporekeeper, Buckethead e Brute custam progressivamente mais ameaça. Pesos, caps e grupos coerentes impedem que o orçamento sozinho produza waves sem identidade.
 
 Os inimigos são distribuídos em grupos. Cada grupo possui atraso curto entre membros e uma pausa maior antes do próximo, evitando a fila contínua das waves altas. A UI consulta o mesmo objeto consumido pelo spawn — não há preview inventado.
 
 ## Boss waves
 
-Toda wave múltipla de 10 é `type: "boss"`. `BOSSES` é um registro de definições com stats, habilidade, escala e configuração; Collector e Foreman ficam estruturalmente preparados, enquanto The Crusher está totalmente funcional.
+Toda wave múltipla de 10 é `type: "boss"`. `BOSSES` é um registro de definições com stats, habilidade, escala e configuração. A rotação começa com Crusher na 10, Collector na 20 e Foreman na 30; os três possuem comportamento completo.
 
 The Crusher tem silhueta e barra próprias, escala por ciclo de boss e usa uma máquina de estados para `moving → telegraph → charging`. O telegraph dura 1,8s e desenha a trajetória antes da investida. A charge acerta a primeira planta no caminho, valorizando frontlines e Wall-Nuts sem torná-los obrigatórios. Eventos `boss:spawn`, `boss:telegraph` e `boss:defeated` permitem áudio futuro.
+
+The Collector disputa pickups reais de Sun com o cursor/Sun Magnet, ganha bônus limitados ao roubar e devolve 60% do valor na morte. The Foreman acelera movimento e ataque de aliados próximos e usa um orçamento finito para chamar reforços leves.
 
 Derrotar um boss concede bônus de Plant Food, Seeds ao fim da run, +1 reroll, uma Evolution e uma expansão.
 
