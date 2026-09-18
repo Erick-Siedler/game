@@ -1,5 +1,15 @@
 # Garden / Last Stand
 
+## Multi-Garden Expansion + Garden Conditions
+
+A run continua sendo uma única instância de `Game`, mas agora contém `GardenState`s locais. `frontYard`, `greenhouse`, `rooftop` e `backyard` têm mapa, base/HP, câmera, plantas, zombies, projéteis, zonas, efeitos, pickups de Sun, Condition e alerta próprios. Sun, Plant Food, seed cooldowns, níveis, Evolutions, upgrades, mastery, wave e progressão de bosses permanecem globais.
+
+O Front Yard começa ativo. Greenhouse, Rooftop e Backyard são liberados após as waves 30, 60 e 90. Todas as áreas ativas são simuladas a cada tick, inclusive fora da tela; apenas o Garden selecionado é renderizado e aceita cursor, placement, Shovel, Gloves e Sun Magnet. Um Garden secundário destruído fica perdido até o fim da run, enquanto a queda do Front Yard encerra a run.
+
+`dist/js/gardens.js` centraliza definitions, ordem, `unlockWave`, flag principal, pool de Conditions e a factory de estado. `dist/js/conditions.js` registra Conditions e expõe uma API única de modifiers. `dist/js/map.js` contém `GARDEN_MAPS`, mantendo `MAP` como alias compatível do Front Yard. Conditions são persistentes durante a run e se acumulam com terrain local usando caps existentes.
+
+O WavePlan global contém `gardenPlans`. O threat original recebe apenas +30% por Garden adicional, depois é repartido com limites controlados; as três primeiras waves após um unlock fazem onboarding gradual. Cada front sorteia tema e composição próprios. Em boss waves, um único Garden recebe o boss e os demais continuam sob pressão reduzida.
+
 ## Arte procedural e animação
 
 A apresentação Canvas 2D fica em `dist/js/art/`: `palette.js` centraliza cores; `shapes.js` fornece formas, folhas, rostos e sombras; `animation.js` fornece easing, spring, pulse, blink e squash/stretch. `plants.js`, `zombies.js`, `bosses.js`, `projectiles.js`, `effects.js` e `environment.js` desenham as entidades e o cenário. `portraits.js` reutiliza a identidade visual em portraits próprios, cacheados para packets, Almanac, Evolutions e boss HUD.
@@ -10,7 +20,7 @@ Para adicionar arte, estenda o dispatch de `drawPlant` ou `drawZombie`/`drawBoss
 
 Esta etapa de polimento foi implementada sem executar testes, QA, navegador, playtest ou benchmarks, conforme solicitado. A validação visual e funcional fica para uma etapa posterior.
 
-Tower defense/RTS roguelike top-down em HTML, CSS e JavaScript modular, sem dependências de runtime nem assets oficiais. A run é dividida em capítulos de 10 waves: o jogador desenvolve uma build, enfrenta um boss, escolhe uma Evolution e expande o jardim, abrindo também uma nova rota de invasão.
+Tower defense/RTS roguelike top-down em HTML, CSS e JavaScript modular, sem dependências de runtime nem assets oficiais. A run é dividida em capítulos de 10 waves: o jogador desenvolve uma build, enfrenta um boss e escolhe uma Evolution. A cada 30 waves, a expansão macro libera um novo Garden; expansões de setor continuam como crescimento local nos demais bosses.
 
 ## Executar e testar
 
@@ -26,15 +36,15 @@ Abra `http://localhost:8000`. Execute `npm test` para os testes de regressão e 
 
 - `1–7`: seleciona uma espécie; clique num tile ativo e livre para plantar.
 - `X` ou botão `PÁ`: remove a planta. Na preparação devolve 25% do custo efetivamente pago; durante a wave não há refund.
-- Clique num Sun para coletar. `Espaço` pausa, `Esc` cancela a seleção e o botão `1×` alterna 1×/2×/3×.
+- Clique num Sun para coletar. `Q`/`E` alternam entre Gardens ativos, `Espaço` pausa, `Esc` cancela a seleção e o botão `1×` alterna 1×/2×/3×.
 - Cada seed packet mostra custo progressivo, hotkey, quantidade, Plant Food em pips e overlay de cooldown próprio.
 - A intermission mostra a composição, threat budget, grupos e entradas exatas do `WavePlan`; a wave 9 também avisa que o boss vem em seguida.
 
 ## Mapa, setores e terreno
 
-`dist/js/map.js` é a fonte única para tamanho, tile, base, setores, terreno, spawn edges e conversões de coordenadas. Os helpers `worldToScreen`, `screenToWorld`, `gridToScreen`, `screenToGrid`, `isTileInsideActiveMap`, `isTilePlantable` e `getActiveSpawnEdges` removem a matemática duplicada da simulação e do input.
+`dist/js/map.js` é o registry de tamanho, tile, base, setores, terreno, spawn edges e conversões de coordenadas para cada Garden. Os helpers `worldToScreen`, `screenToWorld`, `gridToScreen`, `screenToGrid`, `isTileInsideActiveMap`, `isTilePlantable` e `getActiveSpawnEdges` recebem o map/state relevante e mantêm compatibilidade com o Front Yard.
 
-O Central Garden começa ativo. Após cada boss, o jogador pode liberar North, East, South ou West. O espaço adicional sempre traz uma contrapartida: habilita ou reforça a rota correspondente. Os terrenos iniciais são:
+O setor central de cada Garden começa ativo. Nos bosses que não são marcos de 30 waves, o jogador ainda pode liberar North, East, South ou West dentro do Garden atual. O espaço adicional sempre traz uma contrapartida: habilita ou reforça a rota correspondente. Os terrenos iniciais são:
 
 - Sunny Patch: Sunflowers produzem 10% mais rápido.
 - High Ground: artilharia recebe +1 de alcance.
@@ -45,7 +55,7 @@ Setores bloqueados usam uma leitura visual própria e não aceitam placement. A 
 
 ## WavePlan, threat budget e grupos
 
-`dist/js/waves.js` gera toda a wave antes do início. Um plano contém `waveNumber`, `type`, tema opcional, composição, Elites, `spawnEdges`, `spawnGroups`, `threatBudget` e `spentThreat`. Normal, Sprinter, Conehead, Volatile, Sporekeeper, Buckethead e Brute custam progressivamente mais ameaça. `waveCap` limita a composição total e `groupCap` distribui ameaças especiais entre os grupos.
+`dist/js/waves.js` gera toda a wave antes do início. `createMultiGardenWavePlan` produz um plano global com `gardenPlans`; cada plano local contém `gardenId`, `waveNumber`, `type`, tema opcional, composição, Elites, `spawnEdges`, `spawnGroups`, `threatBudget` e `spentThreat`. Normal, Sprinter, Conehead, Volatile, Sporekeeper, Buckethead e Brute custam progressivamente mais ameaça. `waveCap` limita a composição total e `groupCap` distribui ameaças especiais entre os grupos.
 
 Os inimigos são distribuídos em grupos. Cada grupo possui atraso curto entre membros e uma pausa maior antes do próximo, evitando a fila contínua das waves altas. A UI consulta o mesmo objeto consumido pelo spawn — não há preview inventado.
 
@@ -57,7 +67,7 @@ The Crusher tem silhueta e barra próprias, escala por ciclo de boss e usa uma m
 
 The Collector puxa fisicamente pickups reais de Sun e pode perder a disputa para o cursor/Sun Magnet; ao roubar, ganha bônus limitados e devolve 60% do valor na morte. Seus telegraphs e os reforços do Foreman usam tempo real em qualquer velocidade. O Sporekeeper prioriza e cura no máximo quatro aliados por pulso.
 
-Derrotar um boss concede bônus de Plant Food, Seeds ao fim da run, +1 reroll, uma Evolution e uma expansão.
+Derrotar um boss concede bônus de Plant Food, Seeds ao fim da run e +1 reroll, seguido de uma Evolution. Waves 30/60/90 liberam um novo Garden e uma preparação manual de 25s; os demais bosses mantêm a micro-expansão por setor.
 
 ## Evolutions
 
@@ -102,9 +112,9 @@ As estatísticas incluem bosses derrotados, maior boss wave, Suns coletados pelo
 
 ## Eventos e debug
 
-O `EventBus` enxuto desacopla hooks para `wave:start`, `wave:end`, `boss:spawn`, `boss:telegraph`, `boss:defeated`, `plant:placed`, `plant:removed`, `sun:collected`, `upgrade:selected`, `evolution:selected`, `sector:unlocked` e `run:end`.
+O `EventBus` enxuto desacopla hooks para `wave:start`, `wave:end`, `boss:spawn`, `boss:telegraph`, `boss:defeated`, `plant:placed`, `plant:removed`, `sun:collected`, `upgrade:selected`, `evolution:selected`, `sector:unlocked`, `garden:unlocked`, `garden:conditionAssigned`, `garden:switched`, `garden:alert`, `garden:underPressure`, `garden:lost` e `run:end`.
 
-Com `BALANCE.debug = true` ou `?debug=1`, o painel oferece Spawn/Jump Boss, Wave 10/20, reroll, setor, Evolution, Sun, Plant Food e reset da wave para QA rápido.
+Com `BALANCE.debug = true` ou `?debug=1`, o painel oferece Spawn/Jump Boss, Wave 10/20/30/60, unlock/switch/loss de Greenhouse, dano da base atual, troca de Condition, reroll, setor, Evolution, Sun, Plant Food e reset da wave para QA rápido.
 
 ## Arquivos principais
 
