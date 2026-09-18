@@ -15,10 +15,19 @@ export const UPGRADES=[
 export const RARITIES={common:{label:'Comum',weight:60},rare:{label:'Raro',weight:30},epic:{label:'Épico',weight:10}};
 export function affects(u,p){return u.target==='global'||u.target===p.id||u.target==='class:'+p.class}
 function weightedPick(pool,rng,tagBias){if(!pool.length)return null;const weights=pool.map(u=>RARITIES[u.rarity].weight*(u.tags?.some(t=>tagBias.has(t))?1.25:1)),total=weights.reduce((a,b)=>a+b,0);let roll=rng()*total;for(let i=0;i<pool.length;i++){roll-=weights[i];if(roll<0)return pool[i]}return pool.at(-1)}
-export function chooseUpgrades(game,rng=Math.random,exclude=[]){let pool=UPGRADES.filter(u=>!exclude.includes(u.id)&&game.upgrades.filter(id=>id===u.id).length<u.maxStacks),chosen=[],used=new Set(game.plants.filter(p=>p.hp>0).map(p=>p.id)),tagBias=new Set(game.upgrades.flatMap(id=>UPGRADES.find(u=>u.id===id)?.tags||[]));
+function runPlants(game){return game.getAllRunPlants?.()||game.plants.filter(p=>p.hp>0)}
+function availableUpgrades(game,exclude=[]){return UPGRADES.filter(u=>!exclude.includes(u.id)&&game.upgrades.filter(id=>id===u.id).length<u.maxStacks)}
+function relevantToBuild(upgrade,plants){return plants.some(p=>upgrade.target!=='global'&&affects(upgrade,p))}
+export function chooseUpgrades(game,rng=Math.random,exclude=[]){let pool=availableUpgrades(game,exclude),chosen=[],plants=runPlants(game),used=new Set(plants.map(p=>p.id)),tagBias=new Set(game.upgrades.flatMap(id=>UPGRADES.find(u=>u.id===id)?.tags||[]));
  const take=candidates=>{const u=weightedPick(candidates.filter(x=>pool.includes(x)),rng,tagBias);if(u){chosen.push(u);pool=pool.filter(x=>x.id!==u.id)}};
- take(pool.filter(u=>[...used].some(id=>{const p=game.plants.find(p=>p.id===id);return p&&u.target!=='global'&&affects(u,p)})));
- take(pool.filter(u=>[...used].some(id=>{const p=game.plants.find(p=>p.id===id);return p&&u.target!=='global'&&affects(u,p)})));
+ take(pool.filter(u=>relevantToBuild(u,plants)));
+ take(pool.filter(u=>relevantToBuild(u,plants)));
  take(pool.filter(u=>['global','economy','base'].includes(u.target)||!used.has(u.target)));
  while(chosen.length<3&&pool.length)take(pool);return chosen;
+}
+export function chooseBossRewards(game,rng=Math.random,count=3,exclude=[]){let pool=availableUpgrades(game,exclude),chosen=[],plants=runPlants(game),tagBias=new Set(game.upgrades.flatMap(id=>UPGRADES.find(u=>u.id===id)?.tags||[]));
+ const take=candidates=>{const available=candidates.filter(x=>pool.includes(x));if(!available.length)return;const weights=available.map(u=>({epic:6,rare:4,common:1}[u.rarity]||1)*(relevantToBuild(u,plants)?1.8:1)*(u.tags?.some(t=>tagBias.has(t))?1.25:1)),total=weights.reduce((a,b)=>a+b,0);let roll=rng()*total,index=available.length-1;for(let i=0;i<available.length;i++){roll-=weights[i];if(roll<0){index=i;break}}const u=available[index];chosen.push(u);pool=pool.filter(x=>x.id!==u.id)};
+ while(chosen.length<count&&pool.some(u=>u.rarity!=='common'))take(pool.filter(u=>u.rarity!=='common'));
+ while(chosen.length<count&&pool.length)take(pool);
+ return chosen;
 }

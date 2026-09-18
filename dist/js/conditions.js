@@ -11,4 +11,4 @@ export const GARDEN_CONDITIONS={
 export function conditionFor(garden){return typeof garden?.condition==='string'?GARDEN_CONDITIONS[garden.condition]:garden?.condition||null}
 export function getGardenConditionModifier(garden,key,fallback=1){const value=conditionFor(garden)?.effects?.[key];return Number.isFinite(value)?value:fallback}
 export function getGardenConditionBonus(garden,key){return getGardenConditionModifier(garden,key,0)}
-export function assignGardenCondition(definition,rng=Math.random){const pool=definition.conditionPool||[];const id=definition.defaultCondition||pool[Math.floor(rng()*pool.length)]||null;return GARDEN_CONDITIONS[id]||null}
+export function assignGardenCondition(definition,rng=Math.random,excluded=[]){const pool=definition.conditionPool||[],available=pool.filter(id=>!excluded.includes(id)),choices=available.length?available:pool,index=Math.min(choices.length-1,Math.floor(rng()*choices.length)),id=choices[index]||definition.defaultCondition||null;return GARDEN_CONDITIONS[id]||null}

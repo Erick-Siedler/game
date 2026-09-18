@@ -6,7 +6,7 @@ A run continua sendo uma única instância de `Game`, mas agora contém `GardenS
 
 O Front Yard começa ativo. Greenhouse, Rooftop e Backyard são liberados após as waves 30, 60 e 90. Todas as áreas ativas são simuladas a cada tick, inclusive fora da tela; apenas o Garden selecionado é renderizado e aceita cursor, placement, Shovel, Gloves e Sun Magnet. Um Garden secundário destruído fica perdido até o fim da run, enquanto a queda do Front Yard encerra a run.
 
-`dist/js/gardens.js` centraliza definitions, ordem, `unlockWave`, flag principal, pool de Conditions e a factory de estado. `dist/js/conditions.js` registra Conditions e expõe uma API única de modifiers. `dist/js/map.js` contém `GARDEN_MAPS`, mantendo `MAP` como alias compatível do Front Yard. Conditions são persistentes durante a run e se acumulam com terrain local usando caps existentes.
+`dist/js/gardens.js` centraliza definitions, ordem, `unlockWave`, flag principal, pool de Conditions e a factory de estado. `dist/js/conditions.js` registra Conditions e expõe uma API única de modifiers. `dist/js/map.js` contém `GARDEN_MAPS`, mantendo `MAP` como alias compatível do Front Yard. Conditions são sorteadas pelo RNG da run a partir do pool de cada Garden, persistem durante a run e se acumulam com terrain local usando caps existentes.
 
 O WavePlan global contém `gardenPlans`. O threat original recebe apenas +30% por Garden adicional, depois é repartido com limites controlados; as três primeiras waves após um unlock fazem onboarding gradual. Cada front sorteia tema e composição próprios. Em boss waves, um único Garden recebe o boss e os demais continuam sob pressão reduzida.
 
@@ -67,7 +67,7 @@ The Crusher tem silhueta e barra próprias, escala por ciclo de boss e usa uma m
 
 The Collector puxa fisicamente pickups reais de Sun e pode perder a disputa para o cursor/Sun Magnet; ao roubar, ganha bônus limitados e devolve 60% do valor na morte. Seus telegraphs e os reforços do Foreman usam tempo real em qualquer velocidade. O Sporekeeper prioriza e cura no máximo quatro aliados por pulso.
 
-Derrotar um boss concede bônus de Plant Food, Seeds ao fim da run e +1 reroll, seguido de uma Evolution. Waves 30/60/90 liberam um novo Garden e uma preparação manual de 25s; os demais bosses mantêm a micro-expansão por setor.
+Derrotar um boss concede bônus de Plant Food, Seeds ao fim da run e +1 reroll. Enquanto houver espécies elegíveis, segue uma Evolution; depois que toda a build estiver evoluída, aparece um draft especial de Boss Reward priorizando upgrades Rare/Epic. Waves 30/60/90 liberam um novo Garden após qualquer uma dessas recompensas e oferecem uma preparação manual de 25s; os demais bosses mantêm a micro-expansão por setor.
 
 ## Evolutions
 
@@ -87,7 +87,7 @@ Há infraestrutura de vizinhança (`adjacentPlants`, `nearbyPlantTypes`, `distan
 - Garden Aura: Sunflower cura lentamente plantas adjacentes.
 - Crossfire: Shooters adjacentes recebem +10% de velocidade.
 
-O resumo da run separa Evolutions, Rare/Epic, sinergias, comuns e níveis de Plant Food.
+O resumo da run separa Evolutions, Rare/Epic, sinergias, comuns e níveis de Plant Food. Drafts de upgrade e Evolution consideram plantas vivas em todos os Gardens ativos. O Progressive Cost também usa a quantidade viva global da espécie, enquanto adjacency, Solar Network, terrain e demais sinergias espaciais continuam locais. Strong Foundation afeta os fronts atuais e seus stacks são herdados por Gardens desbloqueados depois.
 
 ## Economia, cooldowns e Garden Tools
 
@@ -112,9 +112,9 @@ As estatísticas incluem bosses derrotados, maior boss wave, Suns coletados pelo
 
 ## Eventos e debug
 
-O `EventBus` enxuto desacopla hooks para `wave:start`, `wave:end`, `boss:spawn`, `boss:telegraph`, `boss:defeated`, `plant:placed`, `plant:removed`, `sun:collected`, `upgrade:selected`, `evolution:selected`, `sector:unlocked`, `garden:unlocked`, `garden:conditionAssigned`, `garden:switched`, `garden:alert`, `garden:underPressure`, `garden:lost` e `run:end`.
+O `EventBus` enxuto desacopla hooks para `wave:start`, `wave:end`, `boss:spawn`, `boss:telegraph`, `boss:defeated`, `bossReward:selected`, `plant:placed`, `plant:removed`, `sun:collected`, `upgrade:selected`, `evolution:selected`, `sector:unlocked`, `garden:unlocked`, `garden:conditionAssigned`, `garden:switched`, `garden:alert`, `garden:underPressure`, `garden:lost` e `run:end`.
 
-Com `BALANCE.debug = true` ou `?debug=1`, o painel oferece Spawn/Jump Boss, Wave 10/20/30/60, unlock/switch/loss de Greenhouse, dano da base atual, troca de Condition, reroll, setor, Evolution, Sun, Plant Food e reset da wave para QA rápido.
+Com `BALANCE.debug = true` ou `?debug=1`, o painel oferece Spawn/Jump Boss, Wave 10/20/30/60/80/90, esgotar Evolutions, unlock/switch/loss de Greenhouse, dano da base atual, troca de Condition, reroll, setor, Evolution, Sun, Plant Food e reset da wave para QA rápido.
 
 ## Arquivos principais
 

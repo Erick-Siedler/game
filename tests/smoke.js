@@ -4,7 +4,7 @@ import {fresh,validate,migrateSaveV1ToV2,migrateSaveV2ToV3,read,write} from '../
 import {PLANTS,BALANCE as B} from '../dist/js/data.js';
 import {UPGRADES,chooseUpgrades} from '../dist/js/roguelikeUpgrades.js';
 let tests=0;const test=(name,fn)=>{fn();tests++;console.log('PASS',name)};
-const make=()=>new Game(fresh());
+const make=()=>new Game(fresh(),()=>{},()=>{},()=>.31);
 function seconds(g,n){for(let i=0;i<n*60;i++)g.step(1/60)}
 function active(){const g=make();g.startWave();g.queue=0;g.zombies=[{x:.5,y:.5,hp:1e9,maxHp:1e9,speed:0,damage:0,cool:0,flash:0,uid:999}];return g}
 function take(g,id){const u=UPGRADES.find(u=>u.id===id);g.state='upgrade';g.choices=[u];assert(g.upgrade(u))}
