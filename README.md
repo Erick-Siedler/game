@@ -137,3 +137,17 @@ Com `BALANCE.debug = true` ou `?debug=1`, o painel oferece Spawn/Jump Boss, Wave
 - `dist/js/render.js`: Canvas, setores, entidades e telegraphs.
 - `dist/js/main.js`: UI, input, modais, Almanac e metaprogressão.
 - `tests/smoke.js` e `tests/systems.js`: regressão e sistemas integrados.
+
+## Heroes
+
+Plants defend positions. Heroes defend territory. Cinco Heroes originais usam uma collection separada `garden.heroes`, sem ocupar tiles, Progressive Cost, Plant Food, Evolutions ou Ascensions. Verdant Vanguard (Assault), Solar Warden (Medic), Thorn Brawler (Bruiser), Needle Sentinel (Sniper) e Grove Controller (Controller) desbloqueiam permanentemente ao **vencer** as waves 30/60/90/120/150. O milestone é salvo imediatamente; a tela de desbloqueio aparece depois da recompensa de boss e antes da introdução do novo Garden.
+
+O save v3 continua compatível com v1/v2/v3; os campos opcionais `heroesUnlocked` e `highestCompletedWave` migram automaticamente, usando o antigo `highestWave` para reconstruir conquistas. Novos saves distinguem wave iniciada de wave completada. TXT export/import e reset incluem Heroes.
+
+Cada Garden comporta um Hero e cada personagem só pode estar em um Garden. HEROES no menu mostra progresso e fichas; HEROES na preparação permite atribuir, remover ou transferir após liberar o slot anterior. No Hero é sempre permitido. A seleção aparece no início de runs com desbloqueios e após Garden Intro. Atribuições ficam bloqueadas durante combate.
+
+`heroes.js` define o roster; `heroSystem.js` implementa alvo estável a cada 0,25s, aggro/leash, retorno ao home, combate e habilidades automáticas. Heroes de todos os Gardens ativos simulam juntos, inclusive fora da tela. Zombies podem atingi-los em alcance local, respeitando Taunting Nut; Crusher também pode atingir Heroes. Ao cair, ficam DOWNED até o fim da wave e revivem com 60% HP. Em Garden secundário perdido, voltam à reserva para a próxima preparação. Dano usa `Game.damage()`, sem contaminar contadores de Ascensions; Shared Roots e Emergency Irrigation podem curá-los.
+
+Arte Canvas original em `art/heroes.js` inclui silhuetas próprias, passos, direção, ataque, habilidade, impacto e queda. HUD, tabs de Garden, Almanac e resumo final mostram status e métricas da run. `?debug=1` oferece unlock, assignment, dano/cura, ability e saltos para waves 120/150. Escopo exclui XP, níveis, equipment e controle manual.
+
+Sanity check curto: `npm run test:heroes` cobre migra??o, exclusividade, abilities, down/revive/rescue, fluxo de milestone, alvo por papel, offscreen e pausa. Nesta implementa??o foram executados somente esse check, verifica??o de syntax/imports e revis?o est?tica; QA completo e balanceamento permanecem para a etapa posterior.
